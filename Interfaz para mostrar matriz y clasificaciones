@@ -1,0 +1,114 @@
+#include <iostream>
+#include <vector>
+#include <iomanip> // Necesario para std::setw y alinear textos
+#include <string>
+
+using namespace std;
+
+// Estructura para representar una línea
+struct Linea {
+int origen;
+int destino;
+};
+
+/* * Función generadora de la matriz de incidencia. */
+vector<vector<int> > generarMatrizIncidencia(int numVertices, int numLineas, const vector<Linea>& lineas, bool esDirigida) {
+vector<vector<int> > matriz(numVertices, vector<int>(numLineas, 0));
+
+for (int j = 0; j < numLineas; ++j) {
+int u = lineas[j].origen;
+int v = lineas[j].destino;
+
+if (esDirigida) {
+matriz[u][j] = -1;
+matriz[v][j] = 1;
+} else {
+matriz[u][j] = 1;
+matriz[v][j] = 1;
+}
+}
+return matriz;
+}
+
+/* * Función auxiliar para dibujar separadores de tabla. */
+void dibujarSeparador(int numLineas) {
+cout << " +-------+";
+for (int j = 0; j < numLineas; ++j) {
+cout << "------+";
+}
+cout << endl;
+}
+
+/* * Función que diseña y muestra la interfaz gráfica en consola.
+* - matriz: La matriz de incidencia ya generada.
+* - esDirigida: Clasificación de la gráfica.
+* - numVertices: Cantidad de vértices.
+* - numLineas: Cantidad de líneas.
+*/
+void mostrarInterfaz(const vector<vector<int> >& matriz, bool esDirigida, int numVertices, int numLineas) {
+string tipoGrafica = esDirigida ? "GRAFICA DIRIGIDA" : "GRAFICA NO DIRIGIDA";
+
+// --- ENCABEZADO SOFISTICADO ---
+cout << "\n ======================================================" << endl;
+cout << " SISTEMA DE ANALISIS DE GRAFICAS " << endl;
+cout << " ======================================================" << endl;
+cout << " Clasificacion : " << tipoGrafica << endl;
+cout << " Vertices : " << numVertices << endl;
+cout << " Lineas : " << numLineas << endl;
+cout << " ======================================================\n" << endl;
+
+// --- TABLA DE MATRIZ DE INCIDENCIA ---
+dibujarSeparador(numLineas);
+
+// Fila de encabezados de columnas (Líneas)
+cout << " | V\\L |";
+for (int j = 0; j < numLineas; ++j) {
+cout << " L" << left << setw(3) << j << "|";
+}
+cout << "\n";
+
+dibujarSeparador(numLineas);
+
+// Filas de datos (Vértices)
+for (int i = 0; i < numVertices; ++i) {
+cout << " | V" << left << setw(2) << i << " |"; // Nombre del vértice
+
+for (int j = 0; j < numLineas; ++j) {
+// Formateo para centrar los números, tomando en cuenta el signo negativo
+if (matriz[i][j] >= 0) {
+cout << " " << matriz[i][j] << " |";
+} else {
+cout << " " << matriz[i][j] << " |";
+}
+}
+cout << "\n";
+}
+
+dibujarSeparador(numLineas);
+cout << "\n";
+}
+
+int main() {
+int numVertices = 4;
+int numLineas = 4;
+
+vector<Linea> misLineas;
+misLineas.push_back((Linea){0, 1}); 
+misLineas.push_back((Linea){1, 2}); 
+misLineas.push_back((Linea){2, 3}); 
+misLineas.push_back((Linea){3, 0}); 
+
+// Generar y mostrar la interfaz para gráfica No Dirigida
+vector<vector<int> > matrizNoDirigida = generarMatrizIncidencia(numVertices, numLineas, misLineas, false);
+mostrarInterfaz(matrizNoDirigida, false, numVertices, numLineas);
+
+// Generar y mostrar la interfaz para gráfica Dirigida
+vector<vector<int> > matrizDirigida = generarMatrizIncidencia(numVertices, numLineas, misLineas, true);
+mostrarInterfaz(matrizDirigida, true, numVertices, numLineas);
+
+
+cout << " Presione Enter para salir...";
+cin.get();
+
+return 0;
+}

@@ -1,0 +1,81 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Estructura simple para representar una línea 
+struct Linea {
+int origen;
+int destino;
+};
+
+/* * Función generadora de la matriz de incidencia.
+* Parametros:
+* - numVertices: Cantidad total de vértices en la gráfica.
+* - numLineas: Cantidad total de líneas en la gráfica.
+* - lineas: Vector que contiene las conexiones (origen y destino).
+* - esDirigida: true si la gráfica es dirigida, false si es no dirigida.
+* Retorna: Una matriz de incidencia (vector de vectores de enteros).
+*/
+vector<vector<int> > generarMatrizIncidencia(int numVertices, int numLineas, const vector<Linea>& lineas, bool esDirigida) {
+
+// Inicializamos una matriz de dimensiones (numVertices x numLineas) llena de ceros.
+vector<vector<int> > matriz(numVertices, vector<int>(numLineas, 0));
+
+// Iteramos sobre cada línea (que representará cada columna 'j' de la matriz)
+for (int j = 0; j < numLineas; ++j) {
+int u = lineas[j].origen; // Vértice de origen (fila u)
+int v = lineas[j].destino; // Vértice de destino (fila v)
+
+if (esDirigida) {
+// Convención para gráficas dirigidas:
+// -1 : La línea sale del vértice.
+// 1 : La línea entra al vértice.
+matriz[u][j] = -1;
+matriz[v][j] = 1;
+} else {
+// Convención para gráficas no dirigidas:
+// 1 : La línea incide (toca) al vértice.
+matriz[u][j] = 1;
+matriz[v][j] = 1;
+}
+}
+
+return matriz;
+}
+
+// Función auxiliar para imprimir la matriz y comprobar el resultado
+void imprimirMatriz(const vector<vector<int> >& matriz) {
+for (size_t i = 0; i < matriz.size(); ++i) {
+for (size_t j = 0; j < matriz[i].size(); ++j) {
+// Formato básico para alinear los números (especialmente los negativos)
+if (matriz[i][j] >= 0) cout << " ";
+cout << matriz[i][j] << " ";
+}
+cout << endl;
+}
+}
+
+int main() {
+// Definimos el número de vértices y líneas
+// Nota: Usamos índices basados en 0 para los vértices (0, 1, 2, 3)
+int numVertices = 4;
+int numLineas = 4;
+
+// Creamos las líneas
+vector<Linea> misLineas;
+misLineas.push_back((Linea){0, 1}); // Línea 0: conecta vértice 0 con 1
+misLineas.push_back((Linea){1, 2}); // Línea 1: conecta vértice 1 con 2
+misLineas.push_back((Linea){2, 3}); // Línea 2: conecta vértice 2 con 3
+misLineas.push_back((Linea){3, 0}); // Línea 3: conecta vértice 3 con 0
+
+cout << "--- Matriz de Incidencia (No Dirigida) ---" << endl;
+vector<vector<int> > matrizNoDirigida = generarMatrizIncidencia(numVertices, numLineas, misLineas, false);
+imprimirMatriz(matrizNoDirigida);
+
+cout << "\n--- Matriz de Incidencia (Dirigida) ---" << endl;
+vector<vector<int> > matrizDirigida = generarMatrizIncidencia(numVertices, numLineas, misLineas, true);
+imprimirMatriz(matrizDirigida);
+
+return 0;
+}

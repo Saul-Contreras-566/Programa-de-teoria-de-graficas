@@ -146,7 +146,7 @@ Matriz Generar_matriz_de_accesibilidad (Matriz matriz_de_adyacencia) {
 	Copiar_matriz(matriz_de_adyacencia, &copia_potencias_1);
 
 	// Elevando a potencias sucesivas la matriz de adyacencia (su copia en esta matriz).
-	for (i = 0; i < matriz_de_adyacencia.filas - 1; i++) {
+	for (i = 0; i < matriz_de_adyacencia.filas - 2; i++) {
 		Multiplicar_matrices (copia_potencias_1, copia_original, &copia_potencias_2);
 		Copiar_matriz (copia_potencias_2, &copia_potencias_1);
 		Sumar_matrices (matriz_de_accesibilidad, copia_potencias_2);
@@ -175,9 +175,9 @@ void Imprimir_matriz (Matriz matriz, char *caso_0, char *caso_1, char *caso_2, c
 				case 3: caso_seleccionado = caso_3; break;
 				default: caso_seleccionado = caso_4; break;
 			}
-			printf("| %2s ", caso_seleccionado);
+			printf ("| %2s ", caso_seleccionado);
 		}
-		puts("|");
+		puts ("|");
 	}
 }
 
@@ -187,7 +187,7 @@ void Imprimir_matriz (Matriz matriz, char *caso_0, char *caso_1, char *caso_2, c
 
 // FUNCIÓN GENERAL PARA OBTENER LAS MATRICES.
 
-void Obtener_matrices (Grafo grafo, Matriz *matriz_de_incidencia, Matriz *matriz_de_accesibilidad, Matriz *matriz_de_adyacencia) {
+void Obtener_matrices (Grafo grafo, Matriz *matriz_de_incidencia, Matriz *matriz_de_adyacencia, Matriz *matriz_de_accesibilidad) {
 	*matriz_de_incidencia = Generar_matriz_de_incidencia (grafo);
 	*matriz_de_adyacencia = Generar_matriz_de_adyacencia (grafo);
 	*matriz_de_accesibilidad = Generar_matriz_de_accesibilidad (*matriz_de_adyacencia);

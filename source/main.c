@@ -3,6 +3,8 @@
 #include "grafos_y_matrices.h"
 
 void Leer_tipo_de_grafo (Grafo *grafo) {
+	(*grafo).clasificacion = 0;
+
 	puts ("¿Qué tipo de grafo es?");
 	puts ("1. Grafo no dirigido.");
 	puts ("2. Grafo dirigido.");

@@ -2,9 +2,9 @@
 FUNCIONES PARA LA LECTURA DE LAS RELACIONES.
 *************************************************/
 
+#include <string.h>
 #include "funciones_basicas.h"
 #include "grafos_y_matrices.h"
-#include "string.h"
 
 
 
@@ -24,6 +24,28 @@ Vertice *Buscar_vertice (Grafo *grafo, int numero_de_vertices, char *nombre) {
 	return NULL;
 }
 
+Linea *Buscar_linea (Grafo *grafo, int numero_de_lineas, char *nombre) {
+	/* Esta función devuelve la dirección de memoria
+	del la linea encontrado. Si no se encuentra, se
+	devuelve NULL.*/
+
+	int i;
+
+	for (i = 0; i < numero_de_lineas; i++)
+		if (strcmp (nombre, (*grafo).lineas[i].nombre) == 0)
+			return &(*grafo).lineas[i];
+	
+	return NULL;
+}
+
+char *Nombre_por_defecto (int numero) {
+	numero++;
+	char *nombre = malloc (sizeof (char) * (((int) log10 ((double) numero)) + 2));
+	sprintf (nombre, "%d", numero);
+	printf ("Nombre usado: '%s'.\n", nombre);
+	return nombre;
+}
+
 char *Leer_nombre_de_vertice (Grafo *grafo, int leidos) {
 	int existe;
 	char *nombre;
@@ -31,7 +53,30 @@ char *Leer_nombre_de_vertice (Grafo *grafo, int leidos) {
 	do {
 		existe = 0;
 		Leer_cadena (&nombre);
-		if (Buscar_vertice (grafo, leidos, nombre) != NULL) {
+		if (strcmp (nombre, "\0") == 0) {
+			nombre = Nombre_por_defecto (leidos);
+			break;
+		} else if (Buscar_vertice (grafo, leidos, nombre) != NULL) {
+			existe = 1;
+			free (nombre);
+			break;
+		}
+	} while (existe == 1);
+
+	return nombre;
+}
+
+char *Leer_nombre_de_linea (Grafo *grafo, int leidos) {
+	int existe;
+	char *nombre;
+
+	do {
+		existe = 0;
+		Leer_cadena (&nombre);
+		if (strcmp (nombre, "\0") == 0) {
+			nombre = Nombre_por_defecto (leidos);
+			break;
+		} else if (Buscar_linea (grafo, leidos, nombre) != NULL) {
 			existe = 1;
 			free (nombre);
 			break;
@@ -67,7 +112,7 @@ void Leer_relaciones (Grafo *grafo) {
 	(*grafo).vertices = (Vertice *) malloc (sizeof(Vertice) * (*grafo).numero_de_vertices);
 	puts ("\nInserte el nombre de los vértices:");
 	for (i = 0; i < (*grafo).numero_de_vertices; i++) {
-		printf ("Inserte el nombre del vértice %d:\n", i+1);
+		printf ("Inserte el nombre del vértice %d (nombre por defecto si no inserta nada: %d):\n", i+1, i+1);
 		(*grafo).vertices[i].nombre = Leer_nombre_de_vertice (grafo, i);
 	}
 
@@ -79,6 +124,9 @@ void Leer_relaciones (Grafo *grafo) {
 	(*grafo).lineas = (Linea *) malloc (sizeof(Linea) * (*grafo).numero_de_lineas);
 	for (i = 0; i < (*grafo).numero_de_lineas; i++) {
 		printf ("\n>>>Línea %d:\n", i+1);
+
+		printf ("Inserte el nombre o etiqueta de la línea (nombre por defecto si no inserta nada: %d):\n", i+1);
+		(*grafo).lineas[i].nombre = Leer_nombre_de_linea (grafo, i);
 
 		puts ("Inserte el nombre del vértice inicial:");
 		(*grafo).lineas[i].origen = Seleccionar_vertice (grafo);

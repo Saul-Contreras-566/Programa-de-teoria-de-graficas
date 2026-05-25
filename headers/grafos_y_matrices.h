@@ -55,7 +55,7 @@ typedef struct {
 	char                *nombre;
 	Vertice             *origen;
 	Vertice             *destino;
-	int                  grupo_de_paralelas;
+	unsigned int         grupo_de_paralelas;
 	unsigned short int   clasificacion;
 } Linea;
 
@@ -64,7 +64,7 @@ typedef struct {
 	unsigned int         numero_de_lineas;
 	Vertice             *vertices;
 	Linea               *lineas;
-	int                  numero_de_grupos_de_paralelas;
+	unsigned int         numero_de_grupos_de_paralelas;
 	unsigned short int   clasificacion;
 } Grafo;
 

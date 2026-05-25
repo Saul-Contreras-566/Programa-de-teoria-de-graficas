@@ -2,6 +2,7 @@
 FUNCIONES PARA CLASIFICAR.
 *************************************************/
 
+#include <stdio.h>
 #include "grafos_y_matrices.h"
 
 
@@ -13,7 +14,7 @@ FUNCIONES PARA CLASIFICAR.
 void Obtener_grados_vertices (Grafo grafo) {
 	/*
 	Para el caso de los grafos no dirigidos, solamente
-	se maneja grado_interno para el grado de los vértices.
+	se maneja grado_externo para el grado de los vértices.
 	*/
 
 	unsigned int i;
@@ -26,11 +27,11 @@ void Obtener_grados_vertices (Grafo grafo) {
 
 	// Obteniendo el grado de los vértices.
 	for (i = 0; i < grafo.numero_de_lineas; i++) {
-		(*grafo.lineas[i].origen).grado_interno++;
+		(*grafo.lineas[i].origen).grado_externo++;
 		if (grafo.clasificacion & DIGRAFO)
-			(*grafo.lineas[i].destino).grado_externo++;
-		else
 			(*grafo.lineas[i].destino).grado_interno++;
+		else
+			(*grafo.lineas[i].destino).grado_externo++;
 	}
 
 }
@@ -38,9 +39,12 @@ void Obtener_grados_vertices (Grafo grafo) {
 void Clasificando_vertices_aislados (Grafo grafo) {
 	unsigned int i;
 
+	puts ("Vértices aislados:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
-		if (grafo.vertices[i].grado_interno == 0 && grafo.vertices[i].grado_externo == 0)
+		if (grafo.vertices[i].grado_interno == 0 && grafo.vertices[i].grado_externo == 0) {
 			grafo.vertices[i].clasificacion += VERTICE_AISLADO;
+			printf ("- %s.\n", grafo.vertices[i].nombre);
+		}
 }
 
 void Clasificando_vertices_iniciales (Grafo grafo) {
@@ -49,9 +53,12 @@ void Clasificando_vertices_iniciales (Grafo grafo) {
 
 	unsigned int i;
 
+	puts ("Vértices iniciales:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
-		if (grafo.vertices[i].grado_interno != 0 && grafo.vertices[i].grado_externo == 0)
+		if (grafo.vertices[i].grado_interno == 0 && grafo.vertices[i].grado_externo != 0) {
 			grafo.vertices[i].clasificacion += VERTICE_INICIAL;
+			printf ("- %s.\n", grafo.vertices[i].nombre);
+		}
 }
 
 void Clasificando_vertices_finales (Grafo grafo) {
@@ -60,9 +67,12 @@ void Clasificando_vertices_finales (Grafo grafo) {
 
 	unsigned int i;
 
+	puts ("Vértices finales:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
-		if (grafo.vertices[i].grado_interno == 0 && grafo.vertices[i].grado_externo != 0)
+		if (grafo.vertices[i].grado_interno != 0 && grafo.vertices[i].grado_externo == 0) {
 			grafo.vertices[i].clasificacion += VERTICE_FINAL;
+			printf ("- %s.\n", grafo.vertices[i].nombre);
+		}
 }
 
 void Clasificando_vertices_colgantes (Grafo grafo) {
@@ -71,9 +81,12 @@ void Clasificando_vertices_colgantes (Grafo grafo) {
 
 	unsigned int i;
 
+	puts ("Vértices colgantes:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
-		if (grafo.vertices[i].grado_interno == 0)
+		if (grafo.vertices[i].grado_externo == 1) {
 			grafo.vertices[i].clasificacion += VERTICE_COLGANTE;
+			printf ("- %s.\n", grafo.vertices[i].nombre);
+		}
 }
 
 void Clasificar_vertices (Grafo grafo) {
@@ -107,44 +120,71 @@ void Clasificando_lineas_paralelas (Grafo *grafo) {
 
 		for (j = i + 1; j < (*grafo).numero_de_lineas; j++) { // Compara la línea seleccionada con el resto.
 			// Si la línea j ya es paralela con otra.
-			if ((*grafo).lineas[j].grupo_de_paralelas != 0) break;
+			if ((*grafo).lineas[j].grupo_de_paralelas != 0) continue;
 
-			if (((*grafo).lineas[j].origen == (*grafo).lineas[i].origen &&
+			if (((*grafo).lineas[j].origen == (*grafo).lineas[i].origen && // Si se trata de un grafo dirigido.
 				(*grafo).lineas[j].destino == (*grafo).lineas[i].destino) ||
-				(!((*grafo).clasificacion & DIGRAFO) && // Si se trata de un grafo no dirigido.
+				(((*grafo).clasificacion & DIGRAFO) == 0 && // Si se trata de un grafo no dirigido.
 				(*grafo).lineas[j].origen == (*grafo).lineas[i].destino &&
 				(*grafo).lineas[j].destino == (*grafo).lineas[i].origen)
 			) {
-				(*grafo).lineas[i].grupo_de_paralelas = (*grafo).numero_de_grupos_de_paralelas + 1;
-				(*grafo).lineas[j].grupo_de_paralelas = (*grafo).numero_de_grupos_de_paralelas + 1;
+				(*grafo).lineas[i].grupo_de_paralelas = ++(*grafo).numero_de_grupos_de_paralelas;
+				(*grafo).lineas[j].grupo_de_paralelas = (*grafo).numero_de_grupos_de_paralelas;
 				(*grafo).lineas[i].clasificacion += LINEA_PARALELA;
 				(*grafo).lineas[j].clasificacion += LINEA_PARALELA;
 			}
 		}
+	}
 
-		// Actualizando el contador de grupos de líneas paralaleas.
-		if ((*grafo).lineas[i].grupo_de_paralelas != 0)
-			(*grafo).numero_de_grupos_de_paralelas++;
+	puts ("Grupos de líneas paralelas:");
+	for (i = 0; i < (*grafo).numero_de_grupos_de_paralelas; i++) {
+		printf ("- Grupo %d de líneas paralelas:\n", i+1);
+		for (j = 0; j < (*grafo).numero_de_lineas; j++)
+			if ((*grafo).lineas[j].grupo_de_paralelas == i+1)
+				printf ("    - '%s' (del vértice '%s' al vértice '%s').\n",
+					(*grafo).lineas[j].nombre,
+					(*(*grafo).lineas[j].origen).nombre,
+					(*(*grafo).lineas[j].destino).nombre
+				);
 	}
 }
 
 void Clasificando_bucles (Grafo *grafo) {
 	unsigned int i;
 
+	puts ("Bucles en el grafo:");
 	for (i = 0; i < (*grafo).numero_de_lineas; i++)
-		if ((*grafo).lineas[i].origen == (*grafo).lineas[i].destino)
+		if ((*grafo).lineas[i].origen == (*grafo).lineas[i].destino) {
 			(*grafo).lineas[i].clasificacion += LINEA_BUCLE;
+			printf ("- '%s' en el vértice '%s'.\n",
+				(*grafo).lineas[i].nombre,
+				(*(*grafo).lineas[i].origen).nombre
+			);
+		}
 }
 
 void Clasificando_lineas_en_serie (Grafo *grafo) {
 	// Asegurandome que el código solo se ejecute para los (*grafo)s no dirigidos.
 	if ((*grafo).clasificacion & DIGRAFO) return;
 
-	unsigned int i;
+	unsigned int i, j, n;
+	Linea *lineas[2];
 
-	for (i = 0; i < (*grafo).numero_de_lineas; i++)
-		if ((*(*grafo).lineas[i].origen).grado_interno == 2 || (*(*grafo).lineas[i].destino).grado_interno == 2)
-			(*grafo).lineas[i].clasificacion += LINEA_SERIE;
+	puts ("Líneas en serie:");
+	for (i = 0; i < (*grafo).numero_de_vertices; i++)
+		if ((*grafo).vertices[i].grado_externo == 2) {
+			n = 0;
+			for (j = 0; j < (*grafo).numero_de_lineas; j++)
+				if ((*grafo).lineas[j].origen == &(*grafo).vertices[i] || (*grafo).lineas[j].destino == &(*grafo).vertices[i]) {
+					(*grafo).lineas[j].clasificacion += LINEA_SERIE;
+					lineas[n++] = &(*grafo).lineas[j];
+				}
+			printf ("- '%s' y '%s' están en serie (tienen en común el vértice '%s').\n",
+				(*lineas[0]).nombre,
+				(*lineas[1]).nombre,
+				(*grafo).vertices[i].nombre
+			);
+		}
 }
 
 void Clasificar_lineas (Grafo *grafo) {
@@ -167,6 +207,7 @@ void Es_grafo_general (Grafo *grafo) {
 	// Si existen líneas paralelas, entonces el grafo es general.
 	if ((*grafo).numero_de_grupos_de_paralelas != 0) {
 		(*grafo).clasificacion += GRAFO_GENERAL;
+		puts ("- Grafo general.");
 		return;
 	}
 
@@ -175,13 +216,18 @@ void Es_grafo_general (Grafo *grafo) {
 	for (i = 0; i < (*grafo).numero_de_lineas; i++)
 		if ((*grafo).lineas[i].clasificacion & LINEA_BUCLE) {
 			(*grafo).clasificacion += GRAFO_GENERAL;
+			puts ("- Grafo general.");
 			return;
 		}
+
+	puts ("- Grafo simple.");
 }
 
 void Es_grafo_nulo (Grafo *grafo) {
-	if ((*grafo).numero_de_vertices == 0)
+	if ((*grafo).numero_de_vertices == 0) {
 		(*grafo).clasificacion += GRAFO_NULO;
+		puts ("- Grafo nulo.");
+	}
 }
 
 void Es_grafo_conectado (Grafo *grafo, Matriz matriz_de_accesibilidad) {
@@ -189,9 +235,13 @@ void Es_grafo_conectado (Grafo *grafo, Matriz matriz_de_accesibilidad) {
 
 	// Verificando que sea conectado el grafo.
 	for (i = 0; i < matriz_de_accesibilidad.filas * matriz_de_accesibilidad.columnas; i++)
-		if (matriz_de_accesibilidad.entrada[i] == 0) return;
+		if (matriz_de_accesibilidad.entrada[i] == 0) {
+			puts ("- Grafo desconectado.");
+			return;
+		}
 	
 	(*grafo).clasificacion += GRAFO_CONECTADO;
+	puts ("- Grafo conectado.");
 }
 
 void Es_grafo_regular (Grafo *grafo) {
@@ -199,12 +249,13 @@ void Es_grafo_regular (Grafo *grafo) {
 
 	// Buscando un vértice o dos vértices que demuestren que el grafo no es regular.
 	for (i = 0; i < (*grafo).numero_de_vertices - 1; i++)
-		if ((*grafo).vertices[i].grado_interno != (*grafo).vertices[i+1].grado_interno ||
+		if ((*grafo).vertices[i].grado_externo != (*grafo).vertices[i+1].grado_externo ||
 			((*grafo).clasificacion & DIGRAFO &&
 			(*grafo).vertices[i].grado_interno != (*grafo).vertices[i].grado_externo)
 		) return;
 	
 	(*grafo).clasificacion += GRAFO_REGULAR;
+	puts ("- Grafo regular.");
 }
 
 void Es_grafo_completo (Grafo *grafo) {
@@ -214,17 +265,20 @@ void Es_grafo_completo (Grafo *grafo) {
 	// Si el grado de algún vértice es distinto del número de vertices menos uno, entonces no es un grafo completo.
 	unsigned int i;
 	for (i = 0; i < (*grafo).numero_de_vertices; i++)
-		if ((*grafo).vertices[i].grado_interno != (*grafo).numero_de_vertices - 1 ||
+		if ((*grafo).vertices[i].grado_externo != (*grafo).numero_de_vertices - 1 ||
 			((*grafo).clasificacion & DIGRAFO &&
-			(*grafo).vertices[i].grado_externo != (*grafo).numero_de_vertices - 1)
+			(*grafo).vertices[i].grado_interno != (*grafo).numero_de_vertices - 1)
 		) return;
 	
 	(*grafo).clasificacion += GRAFO_COMPLETO;
+	puts ("- Grafo completo.");
 }
 
 void Es_arbol (Grafo *grafo) {
-	if ((*grafo).clasificacion & GRAFO_CONECTADO && (*grafo).numero_de_lineas == (*grafo).numero_de_vertices - 1)
+	if ((*grafo).clasificacion & GRAFO_CONECTADO && (*grafo).numero_de_lineas == (*grafo).numero_de_vertices - 1) {
 		(*grafo).clasificacion += GRAFO_ARBOL;
+		puts ("- Árbol.");
+	}
 }
 
 void Es_digrafo_simetrico (Grafo *grafo, Matriz matriz_de_adyacencia) {
@@ -239,6 +293,7 @@ void Es_digrafo_simetrico (Grafo *grafo, Matriz matriz_de_adyacencia) {
 				return;
 	
 	(*grafo).clasificacion += DIGRAFO_SIMETRICO;
+	puts ("- Digráfo simétrico.");
 }
 
 void Es_digrafo_balanceado (Grafo *grafo) {
@@ -258,6 +313,7 @@ void Es_digrafo_balanceado (Grafo *grafo) {
 			return;
 	
 	(*grafo).clasificacion += DIGRAFO_BALANCEADO;
+	puts ("- Digráfo balanceado.");
 }
 
 void Es_grafo_euleriano (Grafo *grafo) {
@@ -273,10 +329,11 @@ void Es_grafo_euleriano (Grafo *grafo) {
 	// Si es un grafo no dirigido, se verifica que todos los vértices tengan grado par.
 	unsigned int i;
 	for (i = 0; i < (*grafo).numero_de_vertices; i++)
-		if ((*grafo).vertices[i].grado_interno % 2 != 0)
+		if ((*grafo).vertices[i].grado_externo % 2 != 0)
 			return;
 	
 	(*grafo).clasificacion += GRAFO_EULERIANO;
+	puts ("- Grafo euleriano.");
 }
 
 void Es_grafo_unicursal (Grafo *grafo) {
@@ -289,19 +346,24 @@ void Es_grafo_unicursal (Grafo *grafo) {
 		if (
 			// Si es un grafo no dirigido
 			((!((*grafo).clasificacion & DIGRAFO)) &&
-			(*grafo).vertices[i].grado_interno % 2 != 0) ||
+			(*grafo).vertices[i].grado_externo % 2 != 0) ||
 			// Si es un digrafo.
 			((*grafo).clasificacion & DIGRAFO &&
 			(*grafo).vertices[i].grado_interno != (*grafo).vertices[i].grado_externo)
 		) impares_o_desbalanceados++;
 	
-	if (impares_o_desbalanceados == 2)
+	if (impares_o_desbalanceados == 2) {
 		(*grafo).clasificacion += GRAFO_UNICURSAL;
+		puts ("- Grafo unicursal.");
+	}
 }
 
 void Clasificar_grafo (Grafo *grafo, Matriz matriz_de_adyacencia, Matriz matriz_de_accesibilidad) {
-	(*grafo).clasificacion = 0;
-
+	puts ("Clasificación del grafo:");
+	if ((*grafo).clasificacion & DIGRAFO)
+		puts ("- Digrafo.");
+	else
+		puts ("- Grafo no dirigido.");
 	Es_grafo_general (grafo);
 	Es_grafo_nulo (grafo);
 	Es_grafo_conectado (grafo, matriz_de_accesibilidad);
@@ -321,6 +383,7 @@ void Clasificar_grafo (Grafo *grafo, Matriz matriz_de_adyacencia, Matriz matriz_
 // FUNCION GENERAL PARA CLASIFICAR
 
 void Clasificar (Grafo *grafo, Matriz matriz_de_adyacencia, Matriz matriz_de_accesibilidad) {
+	Obtener_grados_vertices (*grafo);
 	Clasificar_vertices (*grafo);
 	Clasificar_lineas (grafo);
 	Clasificar_grafo (grafo, matriz_de_adyacencia, matriz_de_accesibilidad);

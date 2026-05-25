@@ -1,1 +1,10 @@
-Para que la funcion, Interfaz insercion de datos pueda funcionar, asegurate de tener en el documento las funciones de campos de entrada de interfaz y las funciones de validaciones.
+# Programa de Teoría de gráficas
+
+![Portada](Portada.jpg)
+
+## Integranges del equipo
+
+- Carmona Maldonado Gibrán Isaí.
+- Contreras Rojas Emanuel Saúl.
+- Guzmán Ramos Carlos Emilio.
+- Rodríguez Medina José Alfredo.

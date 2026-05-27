@@ -49,12 +49,20 @@ usaremos en todo el programa.
 
 
 
+#include <SDL3/SDL.h>
+
 // ESTRUCTURAS
 
 typedef struct {
 	char *vertice_inicial;
 	char *vertice_final;
 } Relacion;
+
+typedef struct {
+	SDL_Texture *textura;
+	float w;
+	float h;
+} Texto;
 
 typedef struct {
 	char                *nombre;
@@ -65,6 +73,7 @@ typedef struct {
 	float                y;
 	float                x_original;
 	float                y_original;
+	Texto                etiqueta;
 } Vertice;
 
 typedef struct {
@@ -73,6 +82,8 @@ typedef struct {
 	Vertice             *destino;
 	unsigned int         grupo_de_paralelas;
 	unsigned short int   clasificacion;
+	Texto                etiqueta;
+	unsigned short int   dibujado;
 } Linea;
 
 typedef struct {

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "funciones_basicas.h"
 #include "grafos_y_matrices.h"
-#include "mensajes.h"
 
 Grafo grafo;
 Matriz matriz_de_accesibilidad, matriz_de_adyacencia, matriz_de_incidencia;
@@ -37,6 +36,7 @@ void Borrar_todo () {
 
 int main () {
 	int respuesta;
+	char insertar_grafo[] = "¿Quiére insertar otro grafo?";
 
 	#ifdef WIN32
 	system ("chcp 65001");

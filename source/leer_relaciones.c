@@ -111,19 +111,23 @@ void Leer_relaciones () {
 
 	// Leyendo el nombre de los vértices.
 	grafo.vertices = (Vertice *) malloc (sizeof(Vertice) * grafo.numero_de_vertices);
-	puts ("\nInserte el nombre de los vértices:");
-	for (i = 0; i < grafo.numero_de_vertices; i++) {
-		printf ("Inserte el nombre del vértice %d (nombre por defecto si no inserta nada: %d):\n", i+1, i+1);
-		grafo.vertices[i].nombre = Leer_nombre_de_vertice (i);
-	}
+	if (grafo.numero_de_vertices != 0) {
+		puts ("\nInserte el nombre de los vértices:");
+		for (i = 0; i < grafo.numero_de_vertices; i++) {
+			printf ("Inserte el nombre del vértice %d (nombre por defecto si no inserta nada: %d):\n", i+1, i+1);
+			grafo.vertices[i].nombre = Leer_nombre_de_vertice (i);
+		}
 
-	// Leyendo el número de líneas en el grafo.
-	puts ("\nInserte el número de líneas del grafo (un número mayor o igual que cero):");
-	grafo.numero_de_lineas = Leer_entero_que_sea (mayor_o_igual_que, 0);
+		// Leyendo el número de líneas en el grafo.
+		puts ("\nInserte el número de líneas del grafo (un número mayor o igual que cero):");
+		grafo.numero_de_lineas = Leer_entero_que_sea (mayor_o_igual_que, 0);
+	} else
+		grafo.numero_de_lineas = 0;
 
 	// Leyendo relaciones.
 	grafo.lineas = (Linea *) malloc (sizeof(Linea) * grafo.numero_de_lineas);
 	for (i = 0; i < grafo.numero_de_lineas; i++) {
+		grafo.lineas[i].dibujado = 0;
 		printf ("\n>>>Línea %d:\n", i+1);
 
 		printf ("Inserte el nombre o etiqueta de la línea (nombre por defecto si no inserta nada: %d):\n", i+1);

@@ -364,16 +364,18 @@ void Clasificar_grafo () {
 		puts ("- Digrafo.");
 	else
 		puts ("- Grafo no dirigido.");
-	Es_grafo_general ();
 	Es_grafo_nulo ();
-	Es_grafo_conectado ();
-	Es_grafo_regular ();
-	Es_grafo_completo ();
-	Es_arbol ();
-	Es_digrafo_simetrico ();
-	Es_digrafo_balanceado ();
-	Es_grafo_euleriano ();
-	Es_grafo_unicursal ();
+	if (!(grafo.clasificacion & GRAFO_NULO)) {
+		Es_grafo_general ();
+		Es_grafo_conectado ();
+		Es_grafo_regular ();
+		Es_grafo_completo ();
+		Es_arbol ();
+		Es_digrafo_simetrico ();
+		Es_digrafo_balanceado ();
+		Es_grafo_euleriano ();
+		Es_grafo_unicursal ();
+	}
 }
 
 

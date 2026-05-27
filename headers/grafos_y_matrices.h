@@ -35,6 +35,20 @@ usaremos en todo el programa.
 
 
 
+// VALORES PARA GRAFICADO
+
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
+
+#define RECTANGULOS_POR_CIRCULO 64
+#define RADIO_VERTICES 50.0f
+#define GROSOR_LINEAS 20.0f
+#define ANCHO_SEMIEJE 100.0f
+#define ALTURA_TRIANGULO 50.0f
+#define BASE_TRIANGULO 50.0f
+
+
+
 // ESTRUCTURAS
 
 typedef struct {
@@ -47,8 +61,10 @@ typedef struct {
 	unsigned int         grado_interno;
 	unsigned int         grado_externo;
 	unsigned short int   clasificacion;
-	float                posicion_x;
-	float                posicion_y;
+	float                x;
+	float                y;
+	float                x_original;
+	float                y_original;
 } Vertice;
 
 typedef struct {
@@ -80,8 +96,13 @@ typedef struct {
 
 #define MATRIZ_ENTRADA(matriz, fila, columna) (matriz).entrada[fila*(matriz).columnas + columna]
 
-void Leer_relaciones (Grafo *grafo);
-void Obtener_matrices (Grafo grafo, Matriz *matriz_de_incidencia, Matriz *matriz_de_accesibilidad, Matriz *matriz_de_adyacencia);
-void Clasificar (Grafo *grafo, Matriz matriz_de_adyacencia, Matriz matriz_de_accesibilidad);
+extern Grafo grafo;
+extern Matriz matriz_de_accesibilidad, matriz_de_adyacencia, matriz_de_incidencia;
+
+void Mostrar_matriz (Matriz matriz);
+void Leer_relaciones ();
+void Obtener_matrices ();
+void Clasificar ();
+void Dibujar_grafo ();
 
 #endif

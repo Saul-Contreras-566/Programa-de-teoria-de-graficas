@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include "funciones_basicas.h"
 #include "grafos_y_matrices.h"
+#include "mensajes.h"
 
-void Leer_tipo_de_grafo (Grafo *grafo) {
-	(*grafo).clasificacion = 0;
+Grafo grafo;
+Matriz matriz_de_accesibilidad, matriz_de_adyacencia, matriz_de_incidencia;
+
+void Leer_tipo_de_grafo () {
+	grafo.clasificacion = 0;
 
 	puts ("¿Qué tipo de grafo es?");
 	puts ("1. Grafo no dirigido.");
@@ -11,16 +15,18 @@ void Leer_tipo_de_grafo (Grafo *grafo) {
 	puts ("Seleccionar:");
 	
 	if (Leer_entero_entre (1, 2) == 2)
-		(*grafo).clasificacion += DIGRAFO;
+		grafo.clasificacion += DIGRAFO;
 }
 
-void Borrar_todo (Grafo grafo, Matriz matriz_de_incidencia, Matriz matriz_de_adyacencia, Matriz matriz_de_accesibilidad) {
+void Borrar_todo () {
 	unsigned int i;
 
 	// Liberando memoria del grafo.
 	for (i = 0; i < grafo.numero_de_vertices; i++)
 		free (grafo.vertices[i].nombre);
 	free (grafo.vertices);
+	for (i = 0; i < grafo.numero_de_lineas; i++)
+		free (grafo.lineas[i].nombre);
 	free (grafo.lineas);
 
 	// Liberando memoria de las matrices.
@@ -31,8 +37,6 @@ void Borrar_todo (Grafo grafo, Matriz matriz_de_incidencia, Matriz matriz_de_ady
 
 int main () {
 	int respuesta;
-	Grafo grafo;
-	Matriz matriz_de_accesibilidad, matriz_de_adyacencia, matriz_de_incidencia;
 
 	#ifdef WIN32
 	system ("chcp 65001");
@@ -50,14 +54,14 @@ int main () {
 
 	do {
 		LIMPIAR_PANTALLA ();
-		Leer_tipo_de_grafo (&grafo);
-		Leer_relaciones (&grafo);
-		Obtener_matrices (grafo, &matriz_de_incidencia, &matriz_de_adyacencia, &matriz_de_accesibilidad);
-		Clasificar (&grafo, matriz_de_adyacencia, matriz_de_accesibilidad);
-		// Dibujar_grafo (grafo);
-		Borrar_todo (grafo, matriz_de_incidencia, matriz_de_adyacencia, matriz_de_accesibilidad);
+		Leer_tipo_de_grafo ();
+		Leer_relaciones ();
+		Obtener_matrices ();
+		Clasificar ();
+		Dibujar_grafo ();
+		Borrar_todo ();
 
-		respuesta = Pregunta_cerrada ("¿Quiére insertar otro grafo?");
+		respuesta = Pregunta_cerrada (insertar_grafo);
 	} while (respuesta == 1);
 
 	return 0;

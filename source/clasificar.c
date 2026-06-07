@@ -39,7 +39,7 @@ void Obtener_grados_vertices () {
 void Clasificando_vertices_aislados () {
 	unsigned int i;
 
-	puts ("Vértices aislados:");
+	puts ("\nVértices aislados:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
 		if (grafo.vertices[i].grado_interno == 0 && grafo.vertices[i].grado_externo == 0) {
 			grafo.vertices[i].clasificacion += VERTICE_AISLADO;
@@ -53,7 +53,7 @@ void Clasificando_vertices_iniciales () {
 
 	unsigned int i;
 
-	puts ("Vértices iniciales:");
+	puts ("\nVértices iniciales:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
 		if (grafo.vertices[i].grado_interno == 0 && grafo.vertices[i].grado_externo != 0) {
 			grafo.vertices[i].clasificacion += VERTICE_INICIAL;
@@ -67,7 +67,7 @@ void Clasificando_vertices_finales () {
 
 	unsigned int i;
 
-	puts ("Vértices finales:");
+	puts ("\nVértices finales:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
 		if (grafo.vertices[i].grado_interno != 0 && grafo.vertices[i].grado_externo == 0) {
 			grafo.vertices[i].clasificacion += VERTICE_FINAL;
@@ -81,7 +81,7 @@ void Clasificando_vertices_colgantes () {
 
 	unsigned int i;
 
-	puts ("Vértices colgantes:");
+	puts ("\nVértices colgantes:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
 		if (grafo.vertices[i].grado_externo == 1) {
 			grafo.vertices[i].clasificacion += VERTICE_COLGANTE;
@@ -124,35 +124,38 @@ void Clasificando_lineas_paralelas () {
 
 			if ((grafo.lineas[j].origen == grafo.lineas[i].origen && // Si se trata de un grafo dirigido.
 				grafo.lineas[j].destino == grafo.lineas[i].destino) ||
-				((grafo.clasificacion & DIGRAFO) == 0 && // Si se trata de un grafo no dirigido.
+				((!(grafo.clasificacion & DIGRAFO)) && // Si se trata de un grafo no dirigido.
 				grafo.lineas[j].origen == grafo.lineas[i].destino &&
 				grafo.lineas[j].destino == grafo.lineas[i].origen)
 			) {
-				grafo.lineas[i].grupo_de_paralelas = ++grafo.numero_de_grupos_de_paralelas;
-				grafo.lineas[j].grupo_de_paralelas = grafo.numero_de_grupos_de_paralelas;
+				grafo.lineas[i].grupo_de_paralelas = grafo.numero_de_grupos_de_paralelas + 1;
+				grafo.lineas[j].grupo_de_paralelas = grafo.numero_de_grupos_de_paralelas + 1;
 				grafo.lineas[i].clasificacion += LINEA_PARALELA;
 				grafo.lineas[j].clasificacion += LINEA_PARALELA;
 			}
 		}
+
+		if (grafo.lineas[i].grupo_de_paralelas != 0)
+			grafo.numero_de_grupos_de_paralelas++;
 	}
 
-	puts ("Grupos de líneas paralelas:");
+	puts ("\nGrupos de líneas paralelas:");
 	for (i = 0; i < grafo.numero_de_grupos_de_paralelas; i++) {
-		printf ("- Grupo %d de líneas paralelas:\n", i+1);
+		printf ("- Grupo %d de líneas paralelas (del vértice '%s' al vértice '%s'):\n",
+			i+1,
+			(*grafo.lineas[i].origen).nombre,
+			(*grafo.lineas[i].destino).nombre
+		);
 		for (j = 0; j < grafo.numero_de_lineas; j++)
 			if (grafo.lineas[j].grupo_de_paralelas == i+1)
-				printf ("    - '%s' (del vértice '%s' al vértice '%s').\n",
-					grafo.lineas[j].nombre,
-					(*grafo.lineas[j].origen).nombre,
-					(*grafo.lineas[j].destino).nombre
-				);
+				printf ("    - Línea '%s'\n", grafo.lineas[j].nombre);
 	}
 }
 
 void Clasificando_bucles () {
 	unsigned int i;
 
-	puts ("Bucles en el grafo:");
+	puts ("\nBucles en el grafo:");
 	for (i = 0; i < grafo.numero_de_lineas; i++)
 		if (grafo.lineas[i].origen == grafo.lineas[i].destino) {
 			grafo.lineas[i].clasificacion += LINEA_BUCLE;
@@ -170,7 +173,7 @@ void Clasificando_lineas_en_serie () {
 	unsigned int i, j, n;
 	Linea *lineas[2];
 
-	puts ("Líneas en serie:");
+	puts ("\nLíneas en serie:");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
 		if (grafo.vertices[i].grado_externo == 2) {
 			n = 0;
@@ -359,7 +362,7 @@ void Es_grafo_unicursal () {
 }
 
 void Clasificar_grafo () {
-	puts ("Clasificación del grafo:");
+	puts ("\nClasificación del grafo:");
 	if (grafo.clasificacion & DIGRAFO)
 		puts ("- Digrafo.");
 	else
@@ -386,6 +389,7 @@ void Clasificar_grafo () {
 
 void Clasificar () {
 	Obtener_grados_vertices ();
+	puts ("CLASIFIACIONES DE VÉRTICES, LÍNEAS Y DEL GRAFO");
 	Clasificar_vertices ();
 	Clasificar_lineas ();
 	Clasificar_grafo ();

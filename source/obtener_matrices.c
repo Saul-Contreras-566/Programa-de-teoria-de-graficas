@@ -52,19 +52,24 @@ void Generar_matriz_de_incidencia () {
 	la línea es un bucle.
 	*/
 
-	unsigned int i, j;
+	unsigned int i;
 
 	matriz_de_incidencia.filas = grafo.numero_de_vertices;
 	matriz_de_incidencia.columnas = grafo.numero_de_lineas;
 	matriz_de_incidencia.entrada = Inicializar_entradas (grafo.numero_de_vertices * grafo.numero_de_lineas);
 
-	for (j = 0; j < matriz_de_incidencia.columnas; j++)
-		for (i = 0; i < matriz_de_incidencia.filas; i++) {
-			if (grafo.lineas[j].origen == &grafo.vertices[i])
-				MATRIZ_ENTRADA(matriz_de_incidencia, i, j) = 1;
-			if (grafo.lineas[j].destino == &grafo.vertices[i])
-				MATRIZ_ENTRADA(matriz_de_incidencia, i, j) += 2;
-		}
+	for (i = 0; i < grafo.numero_de_lineas; i++) {
+		MATRIZ_ENTRADA (
+			matriz_de_incidencia,
+			(unsigned int) (grafo.lineas[i].origen - &grafo.vertices[0]),
+			i
+		) = 1;
+		MATRIZ_ENTRADA (
+			matriz_de_incidencia,
+			(unsigned int) (grafo.lineas[i].destino - &grafo.vertices[0]),
+			i
+		) += 2;
+	}
 }
 
 void Generar_matriz_de_adyacencia () {
@@ -76,20 +81,26 @@ void Generar_matriz_de_adyacencia () {
 	a otro.
 	*/
 
-	unsigned int i, j, k;
+	unsigned int i;
 
 	matriz_de_adyacencia.filas = grafo.numero_de_vertices;
 	matriz_de_adyacencia.columnas = grafo.numero_de_vertices;
 	matriz_de_adyacencia.entrada = Inicializar_entradas (grafo.numero_de_vertices * grafo.numero_de_vertices);
 
-	for (k = 0; k < grafo.numero_de_lineas; k++)
-		for (i = 0; i < grafo.numero_de_vertices; i++)
-			for (j = 0; j < grafo.numero_de_vertices; j++)
-				if (grafo.lineas[k].origen == &grafo.vertices[i] && grafo.lineas[k].destino == &grafo.vertices[j]) {
-					MATRIZ_ENTRADA(matriz_de_adyacencia, i, j)++;
-					if (!(grafo.clasificacion & DIGRAFO) && i != j)
-						MATRIZ_ENTRADA(matriz_de_adyacencia, j, i)++;
-				}
+	for (i = 0; i < grafo.numero_de_lineas; i++) {
+		MATRIZ_ENTRADA (
+			matriz_de_adyacencia,
+			(unsigned int) (grafo.lineas[i].origen - &grafo.vertices[0]),
+			(unsigned int) (grafo.lineas[i].destino - &grafo.vertices[0])
+		)++;
+
+		if (!(grafo.clasificacion & DIGRAFO))
+			MATRIZ_ENTRADA (
+				matriz_de_adyacencia,
+				(unsigned int) (grafo.lineas[i].destino - &grafo.vertices[0]),
+				(unsigned int) (grafo.lineas[i].origen - &grafo.vertices[0])
+			)++;
+	}
 }
 
 void Copiar_matriz (Matriz origen, Matriz *destino) {
@@ -137,48 +148,80 @@ void Generar_matriz_de_accesibilidad () {
 	potencias sucesivas.
 	*/
 
-	int i;
-	Matriz copia_original, copia_potencias_1, copia_potencias_2;
+	unsigned int potencias; // Contador de las potencias sucesivas.
+	Matriz copia, resultado;
 
 	matriz_de_accesibilidad.entrada = NULL;
-	copia_original.entrada = NULL;
-	copia_potencias_1.entrada = NULL;
-	copia_potencias_2.entrada = NULL;
+	copia.entrada = NULL;
+	resultado.entrada = NULL;
 
 	Copiar_matriz(matriz_de_adyacencia, &matriz_de_accesibilidad);
-	Copiar_matriz(matriz_de_adyacencia, &copia_original);
-	Copiar_matriz(matriz_de_adyacencia, &copia_potencias_1);
+	Copiar_matriz(matriz_de_adyacencia, &copia);
 
-	// Elevando a potencias sucesivas la matriz de adyacencia (su copia en esta matriz).
-	for (i = 0; i < (int) matriz_de_adyacencia.filas - 2; i++) {
-		Multiplicar_matrices (copia_potencias_1, copia_original, &copia_potencias_2);
-		Copiar_matriz (copia_potencias_2, &copia_potencias_1);
-		Sumar_matrices (matriz_de_accesibilidad, copia_potencias_2);
+	// Elevando a potencias sucesivas la matriz de adyacencia.
+	for (potencias = 2; potencias <= grafo.numero_de_vertices; potencias++) {
+		Multiplicar_matrices (copia, matriz_de_adyacencia, &resultado);
+		Copiar_matriz (resultado, &copia);
+		Sumar_matrices (matriz_de_accesibilidad, resultado);
 	}
 
-	free (copia_original.entrada);
-	free (copia_potencias_1.entrada);
-	free (copia_potencias_2.entrada);
+	free (copia.entrada);
+	free (resultado.entrada);
 }
 
-void Imprimir_matriz (Matriz matriz, char *caso_0, char *caso_1, char *caso_2, char *caso_3, char *caso_4) {
-	/* En esta función las variables de caso tienen
-	un significado distinto dependiendo de la matriz
-	que se vaya a imprimir. */
+void Imprimir_matriz_de_incidencia () {
+	unsigned int i, j;
+	char llega[] = "1";
+	char no_incide[] = "0";
+	char sale[] = "-1";
+	char bucle[] = "±1";
+	char *caso;
+
+	// Encabezado de la tabla/matriz.
+	printf ("|    ");
+	for (i = 0; i < grafo.numero_de_lineas; i++)	
+		printf ("| %2s ", grafo.lineas[i].nombre);
+	puts ("|");
+
+	// Cuerpo de la tabla/matriz.
+	for (i = 0; i < grafo.numero_de_vertices; i++) {
+		printf ("| %2s ", grafo.vertices[i].nombre);
+		for (j = 0; j < grafo.numero_de_lineas; j++) {
+			switch (MATRIZ_ENTRADA (matriz_de_incidencia, i, j)) {
+				case 0: caso = no_incide; break;
+				case 1: caso = llega; break;
+				case 2: caso = (grafo.clasificacion & DIGRAFO) ? sale : llega; break;
+				case 3: caso = (grafo.clasificacion & DIGRAFO) ? bucle : llega; break;
+				default: caso = no_incide; break;
+			}
+			printf ("| %2s ", caso);
+		}
+		puts ("|");
+	}
+}
+
+void Imprimir_matriz_cuadrada (Matriz matriz, char *cero, char *positivo) {
+	/* Esta función se utiliza para imprimir la matriz
+	de adyacencia y de accesibilidad */
 
 	unsigned int i, j;
-	char *caso_seleccionado;
+	char *caso;
 
-	for (i = 0; i < matriz.filas; i++) {
-		for (j = 0; j < matriz.columnas; j++) {
-			switch (MATRIZ_ENTRADA (matriz, i, j)) {
-				case 0: caso_seleccionado = caso_0; break;
-				case 1: caso_seleccionado = caso_1; break;
-				case 2: caso_seleccionado = caso_2; break;
-				case 3: caso_seleccionado = caso_3; break;
-				default: caso_seleccionado = caso_4; break;
-			}
-			printf ("| %2s ", caso_seleccionado);
+	// Encabezado de la tabla/matriz.
+	printf ("|    ");
+	for (i = 0; i < grafo.numero_de_vertices; i++)
+		printf ("| %2s ", grafo.vertices[i].nombre);
+	puts ("|");
+
+	// Cuerpo de la tabla/matriz.
+	for (i = 0; i < grafo.numero_de_vertices; i++) {
+		printf ("| %2s ", grafo.vertices[i].nombre);
+		for (j = 0; j < grafo.numero_de_vertices; j++) {
+			if (MATRIZ_ENTRADA (matriz, i, j) == 0)
+				caso = cero;
+			else
+				caso = positivo;
+			printf ("| %2s ", caso);
 		}
 		puts ("|");
 	}
@@ -197,22 +240,17 @@ void Obtener_matrices () {
 
 	char cero[] = "0";
 	char uno[] = "1";
-	char menos_uno[] = "-1";
-	char mas_menos_uno[] = "±1";
 	char mas[] = "+";
 
 	puts ("Matriz de incidencia");
-	if (grafo.clasificacion & DIGRAFO)
-		Imprimir_matriz (matriz_de_incidencia, cero, uno, menos_uno, mas_menos_uno, cero);
-	else
-		Imprimir_matriz (matriz_de_incidencia, cero, uno, uno, uno, cero);
+	Imprimir_matriz_de_incidencia ();
 	puts ("");
 
 	puts ("Matriz de adyacencia");
-	Imprimir_matriz (matriz_de_adyacencia, cero, uno, uno, uno, cero);
+	Imprimir_matriz_cuadrada (matriz_de_adyacencia, cero, uno);
 	puts ("");
 
 	puts ("Matriz de accesibilidad");
-	Imprimir_matriz (matriz_de_accesibilidad, cero, mas, mas, mas, mas);
+	Imprimir_matriz_cuadrada (matriz_de_accesibilidad, cero, mas);
 	puts ("");
 }

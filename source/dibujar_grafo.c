@@ -302,11 +302,13 @@ void Dibujar_circunferencia (float x, float y, float grosor, float radio) {
 void Dibujar_bucle (Linea linea, float grosor, float radio) {
 	SDL_FRect cuadro_de_texto;
 	double radianes = Obtener_angulo (
-		(*linea.origen).x - (float) WINDOW_WIDTH / 2.0f,
-		(*linea.origen).y - (float) WINDOW_HEIGHT / 2.0f
+		(*linea.origen).x - posx - WINDOW_WIDTH / 2.0f,
+		(*linea.origen).y - posy - WINDOW_HEIGHT / 2.0f
 	);
-	float x = radio * (float) cos (radianes);
-	float y = radio * (float) sin (radianes);
+	float coseno = (float) cos (radianes);
+	float seno = (float) sin (radianes);
+	float x = radio * coseno;
+	float y = radio * seno;
 	Dibujar_circunferencia (
 		(*linea.origen).x + x,
 		(*linea.origen).y + y,
@@ -323,8 +325,8 @@ void Dibujar_bucle (Linea linea, float grosor, float radio) {
 			grosor
 		);
 	
-	cuadro_de_texto.x = (*linea.origen).x + 30.0f * x - linea.etiqueta.w / 2.0f;
-	cuadro_de_texto.y = (*linea.origen).y + 30.0f * y - linea.etiqueta.h / 2.0f;
+	cuadro_de_texto.x = (*linea.origen).x + 2.0f * x - linea.etiqueta.w / 2.0f + 30.0f * coseno;
+	cuadro_de_texto.y = (*linea.origen).y + 2.0f * y - linea.etiqueta.h / 2.0f + 30.0f * seno;
 	cuadro_de_texto.w = linea.etiqueta.w;
 	cuadro_de_texto.h = linea.etiqueta.h;
 	SDL_RenderTexture (renderer, linea.etiqueta.textura, NULL, &cuadro_de_texto);
@@ -332,125 +334,55 @@ void Dibujar_bucle (Linea linea, float grosor, float radio) {
 
 void Dibujar_relaciones () {
 	unsigned int i, j;
-	//int k;
 	unsigned int lineas;
-	float semieje;
+	float ancho;
 	float n;
-	//double radianes;
+	float sentido;
 
 	Establecer_color (50, 200, 200, 255);
+
+	// Marcando todas las líneas como no dibujadas.
 	for (i = 0; i < grafo.numero_de_lineas; i++)
 		grafo.lineas[i].dibujado = 0;
+	
+	// Dibujando líneas.
 	for (i = 0; i < grafo.numero_de_lineas; i++) {
 		if (grafo.lineas[i].dibujado == 1)
 			continue;
-		else if (grafo.lineas[i].origen == grafo.lineas[i].destino)
-			Dibujar_bucle (grafo.lineas[i], GROSOR_LINEAS, ANCHO_SEMIEJE);
-		else {
-			lineas = 
-				MATRIZ_ENTRADA (
-					matriz_de_adyacencia,
-					(unsigned int) (grafo.lineas[i].origen - &grafo.vertices[0]),
-					(unsigned int) (grafo.lineas[i].destino - &grafo.vertices[0])
-				) + (grafo.clasificacion & DIGRAFO ?
-					MATRIZ_ENTRADA (
-						matriz_de_adyacencia,
-						(unsigned int) (grafo.lineas[i].destino - &grafo.vertices[0]),
-						(unsigned int) (grafo.lineas[i].origen - &grafo.vertices[0])
-					) : 0
-				); // Obtiene el número de líneas que conectan dos vértices, toma en cuenta si el grafo es dirigido o no.
-			if (lineas == 1)
-				Dibujar_relacion (grafo.lineas[i], GROSOR_LINEAS, 0.0f);
-			else if (lineas > 1) {
-				semieje = ANCHO_SEMIEJE * (float) (lineas - 1) / 2.0f;
-				n = 0.0f;
-				for (j = 0; j < grafo.numero_de_lineas; j++) {
-					if (
-						grafo.lineas[j].origen == grafo.lineas[i].origen &&
-						grafo.lineas[j].destino == grafo.lineas[i].destino
-					) {
-						Dibujar_relacion (
-							grafo.lineas[j],
-							GROSOR_LINEAS,
-							semieje - ANCHO_SEMIEJE * (n++)
-						);
-						grafo.lineas[j].dibujado = 1;
-					} else if (
-						grafo.lineas[j].origen == grafo.lineas[i].destino &&
-						grafo.lineas[j].destino == grafo.lineas[i].origen
-					) {
-						Dibujar_relacion (
-							grafo.lineas[j],
-							GROSOR_LINEAS,
-							ANCHO_SEMIEJE * (n++) - semieje
-						);
-						grafo.lineas[j].dibujado = 1;
-					}
-				}
+		lineas = MATRIZ_ENTRADA (
+			matriz_de_adyacencia,
+			(unsigned int) (grafo.lineas[i].origen - &grafo.vertices[0]),
+			(unsigned int) (grafo.lineas[i].destino - &grafo.vertices[0])
+		) + ((grafo.clasificacion & DIGRAFO) && grafo.lineas[i].origen != grafo.lineas[i].destino ?
+			MATRIZ_ENTRADA (
+				matriz_de_adyacencia,
+				(unsigned int) (grafo.lineas[i].destino - &grafo.vertices[0]),
+				(unsigned int) (grafo.lineas[i].origen - &grafo.vertices[0])
+			) : 0
+		); // Obtiene el número de líneas que conectan dos vértices, toma en cuenta si el grafo es dirigido o no.
+		ancho = ANCHO_SEMIEJE * (float) (lineas - 1) / 2.0f;
+		n = 0.0f;
+		if (grafo.lineas[i].origen == grafo.lineas[i].destino)
+			n++;
+		// Dibujando todas las líneas que inciden en los mismos vértices que la línea i-ésima.
+		for (j = 0; j < grafo.numero_de_lineas; j++) {
+			sentido = 0.0f;
+			if (grafo.lineas[j].origen == grafo.lineas[i].origen && grafo.lineas[j].destino == grafo.lineas[i].destino)
+				sentido = 1.0f;
+			else if (grafo.lineas[j].origen == grafo.lineas[i].destino && grafo.lineas[j].destino == grafo.lineas[i].origen)
+				sentido = -1.0f;
+			else
+				sentido = 0.0f;
+			if (sentido != 0.0f) {
+				if (grafo.lineas[j].origen == grafo.lineas[j].destino)
+					Dibujar_bucle (grafo.lineas[j], GROSOR_LINEAS, ANCHO_SEMIEJE * (n++) / 2.0f);
+				else
+					Dibujar_relacion (grafo.lineas[j], GROSOR_LINEAS, sentido * (ancho - ANCHO_SEMIEJE * (n++)));
+				grafo.lineas[j].dibujado = 1;
 			}
 		}
 		grafo.lineas[i].dibujado = 1;
 	}
-	/*
-	for (i = 0; i < grafo.numero_de_vertices && abortar == 0; i++)
-		for (j = i; j < grafo.numero_de_vertices && abortar == 0; j++) {
-			lineas = MATRIZ_ENTRADA (matriz_de_adyacencia, i, j) + ((grafo.clasificacion & DIGRAFO) ? MATRIZ_ENTRADA (matriz_de_adyacencia, j, i) && i != j: 0);
-			if (lineas == 0)
-				continue;
-			else if (i == j) {
-				n = 1.5f;
-				for (k = 0; k < (int) lineas && abortar == 0; k++) {
-					radianes = Obtener_angulo (grafo.vertices[i].x - (float) WINDOW_WIDTH / 2.0f, grafo.vertices[i].y - (float) WINDOW_HEIGHT / 2.0f);
-					Dibujar_relacion (
-						grafo.vertices[i].x,
-						grafo.vertices[i].y,
-						grafo.vertices[i].x + RADIO_VERTICES * n * 2.0f * (float) cos (radianes),
-						grafo.vertices[i].y + RADIO_VERTICES * n * 2.0f * (float) sin (radianes),
-						GROSOR_LINEAS,
-						RADIO_VERTICES * n
-					);
-					Dibujar_relacion (
-						grafo.vertices[i].x + RADIO_VERTICES * n * 2.0f * (float) cos (radianes),
-						grafo.vertices[i].y + RADIO_VERTICES * n * 2.0f * (float) sin (radianes),
-						grafo.vertices[i].x,
-						grafo.vertices[i].y,
-						GROSOR_LINEAS,
-						RADIO_VERTICES * n
-					);
-					Dibujar_circulo (
-						grafo.vertices[i].x + RADIO_VERTICES * n * 2.0f * (float) cos (radianes),
-						grafo.vertices[i].y + RADIO_VERTICES * n * 2.0f * (float) sin (radianes),
-						GROSOR_LINEAS
-					);
-					n++;
-				}
-			} else {
-				n = 0.0f;
-				semieje = ANCHO_SEMIEJE * ((float) lineas - 1.0f) / 2.0f;
-				for (k = 0; k < MATRIZ_ENTRADA (matriz_de_adyacencia, i, j) && abortar == 0; k++)
-					Dibujar_relacion (
-						grafo.vertices[i].x,
-						grafo.vertices[i].y,
-						grafo.vertices[j].x,
-						grafo.vertices[j].y,
-						GROSOR_LINEAS,
-						semieje - ANCHO_SEMIEJE * (n++)
-					);
-				if (i != j) {
-					n = 0.0f;
-					for (k = 0; k < MATRIZ_ENTRADA (matriz_de_adyacencia, j, i) && abortar == 0; k++)
-						Dibujar_relacion (
-							grafo.vertices[j].x,
-							grafo.vertices[j].y,
-							grafo.vertices[i].x,
-							grafo.vertices[i].y,
-							GROSOR_LINEAS,
-							semieje - ANCHO_SEMIEJE * (n++)
-						);
-				}
-			}
-		}
-	*/
 }
 
 void Evento_cerrar_ventana () {

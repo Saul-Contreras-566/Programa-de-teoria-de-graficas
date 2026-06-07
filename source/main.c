@@ -57,6 +57,8 @@ int main () {
 		Leer_tipo_de_grafo ();
 		Leer_relaciones ();
 		Obtener_matrices ();
+
+		LIMPIAR_PANTALLA ();
 		Clasificar ();
 		Dibujar_grafo ();
 		Borrar_todo ();

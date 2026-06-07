@@ -87,8 +87,14 @@ float Obtener_distancia (float x1, float y1, float x2, float y2) {
 
 void Posicionar_vertices () {
 	unsigned int i;
-	float radio = (float) (WINDOW_WIDTH < WINDOW_HEIGHT ? WINDOW_WIDTH : WINDOW_HEIGHT) / 2.0f - RADIO_VERTICES * 2.0f - 10.0f;
 	double radianes = 2.0 * PI / (double) grafo.numero_de_vertices;
+	double radio;
+
+	switch (grafo.numero_de_vertices) {
+		case 0: radio = 0; break;
+		case 1: radio = 0; break;
+		default: radio = 2.25f * RADIO_VERTICES * grafo.numero_de_vertices / PI; break;
+	}
 
 	for (i = 0; i < grafo.numero_de_vertices; i++) {
 		grafo.vertices[i].x = radio * (float) cos ((double) i * radianes) + (float) WINDOW_WIDTH / 2.0f;

@@ -242,6 +242,8 @@ void Obtener_matrices () {
 	char uno[] = "1";
 	char mas[] = "+";
 
+	puts ("MATRICES RELACIONADAS AL GRAFO\n");
+
 	puts ("Matriz de incidencia");
 	Imprimir_matriz_de_incidencia ();
 	puts ("");
@@ -252,5 +254,5 @@ void Obtener_matrices () {
 
 	puts ("Matriz de accesibilidad");
 	Imprimir_matriz_cuadrada (matriz_de_accesibilidad, cero, mas);
-	puts ("");
+	puts ("\n");
 }

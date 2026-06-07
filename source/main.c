@@ -5,16 +5,21 @@
 Grafo grafo;
 Matriz matriz_de_accesibilidad, matriz_de_adyacencia, matriz_de_incidencia;
 
-void Leer_tipo_de_grafo () {
+int Leer_tipo_de_grafo () {
+	int numero_leido;
 	grafo.clasificacion = 0;
 
 	puts ("¿Qué tipo de grafo es?");
+	puts ("0. (Salir del programa).");
 	puts ("1. Grafo no dirigido.");
 	puts ("2. Grafo dirigido.");
 	puts ("Seleccionar:");
+	numero_leido = Leer_entero_entre (0, 2);
 	
-	if (Leer_entero_entre (1, 2) == 2)
+	if (numero_leido == 2)
 		grafo.clasificacion += DIGRAFO;
+	
+	return numero_leido;
 }
 
 void Borrar_todo () {
@@ -54,11 +59,11 @@ int main () {
 
 	do {
 		LIMPIAR_PANTALLA ();
-		Leer_tipo_de_grafo ();
+		if (Leer_tipo_de_grafo () == 0) break;
 		Leer_relaciones ();
-		Obtener_matrices ();
 
 		LIMPIAR_PANTALLA ();
+		Obtener_matrices ();
 		Clasificar ();
 		Dibujar_grafo ();
 		Borrar_todo ();

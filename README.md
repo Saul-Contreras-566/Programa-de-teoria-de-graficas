@@ -11,5 +11,4 @@
 
 ## Ejecutar en Windows
 
-Para ejecutar en Windows, es necesario tener los archivos `SDL3.dll` y `LiberationMono-Regular.ttf` en la misma carpeta que el ejecutable del programa
-
+Para ejecutar en Windows, es necesario tener los archivos `SDL3.dll`, `SDL3_ttf.dll` y `LiberationMono-Regular.ttf` en la misma carpeta que el ejecutable del programa

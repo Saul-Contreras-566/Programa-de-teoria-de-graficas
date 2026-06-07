@@ -60,6 +60,8 @@ typedef struct {
 
 typedef struct {
 	SDL_Texture *textura;
+	float x;
+	float y;
 	float w;
 	float h;
 } Texto;

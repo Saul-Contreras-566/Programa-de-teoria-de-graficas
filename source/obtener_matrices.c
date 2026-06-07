@@ -178,9 +178,13 @@ void Imprimir_matriz_de_incidencia () {
 	char *caso;
 
 	// Encabezado de la tabla/matriz.
-	printf ("|    ");
+	printf ("|****");
 	for (i = 0; i < grafo.numero_de_lineas; i++)	
 		printf ("| %2s ", grafo.lineas[i].nombre);
+	puts ("|");
+	printf ("|----");
+	for (i = 0; i < grafo.numero_de_lineas; i++)	
+		printf ("|----");
 	puts ("|");
 
 	// Cuerpo de la tabla/matriz.
@@ -208,9 +212,13 @@ void Imprimir_matriz_cuadrada (Matriz matriz, char *cero, char *positivo) {
 	char *caso;
 
 	// Encabezado de la tabla/matriz.
-	printf ("|    ");
+	printf ("|****");
 	for (i = 0; i < grafo.numero_de_vertices; i++)
 		printf ("| %2s ", grafo.vertices[i].nombre);
+	puts ("|");
+	printf ("|----");
+	for (i = 0; i < grafo.numero_de_vertices; i++)	
+		printf ("|----");
 	puts ("|");
 
 	// Cuerpo de la tabla/matriz.

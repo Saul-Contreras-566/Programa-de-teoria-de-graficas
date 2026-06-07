@@ -227,7 +227,7 @@ void Es_grafo_general () {
 }
 
 void Es_grafo_nulo () {
-	if (grafo.numero_de_vertices == 0) {
+	if (grafo.numero_de_lineas == 0) {
 		grafo.clasificacion += GRAFO_NULO;
 		puts ("- Grafo nulo.");
 	}
@@ -306,6 +306,7 @@ void Es_digrafo_balanceado () {
 	// Si es regular, entonces es balanceado.
 	if (grafo.clasificacion & GRAFO_REGULAR) {
 		grafo.clasificacion += DIGRAFO_BALANCEADO;
+		puts ("- Digráfo balanceado.");
 		return;
 	}
 
@@ -326,6 +327,7 @@ void Es_grafo_euleriano () {
 	// Si es una digráfica balanceada, entonces es euleriana.
 	if (grafo.clasificacion & DIGRAFO && grafo.clasificacion & DIGRAFO_BALANCEADO) {
 		grafo.clasificacion += GRAFO_EULERIANO;
+		puts ("- Grafo euleriano.");
 		return;
 	}
 
@@ -367,18 +369,16 @@ void Clasificar_grafo () {
 		puts ("- Digrafo.");
 	else
 		puts ("- Grafo no dirigido.");
+	Es_grafo_general ();
 	Es_grafo_nulo ();
-	if (!(grafo.clasificacion & GRAFO_NULO)) {
-		Es_grafo_general ();
-		Es_grafo_conectado ();
-		Es_grafo_regular ();
-		Es_grafo_completo ();
-		Es_arbol ();
-		Es_digrafo_simetrico ();
-		Es_digrafo_balanceado ();
-		Es_grafo_euleriano ();
-		Es_grafo_unicursal ();
-	}
+	Es_grafo_conectado ();
+	Es_grafo_regular ();
+	Es_grafo_completo ();
+	Es_arbol ();
+	Es_digrafo_simetrico ();
+	Es_digrafo_balanceado ();
+	Es_grafo_euleriano ();
+	Es_grafo_unicursal ();
 }
 
 

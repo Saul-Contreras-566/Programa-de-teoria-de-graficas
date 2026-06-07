@@ -17,21 +17,25 @@ unsigned int i, j, vertice_seleccionado = -1;
 double radianes;
 float posx = 0.0f, posy = 0.0f;
 
-void Salida_panico () {
+void Terminar_ventana () {
 	unsigned int i;
-	abortar = 1;
-	puts ("Abortando SDL.");
-	TTF_CloseFont (fuente);
-	if (window != NULL) SDL_DestroyWindow (window);
-	if (renderer != NULL) SDL_DestroyRenderer (renderer);
 	for (i = 0; i < grafo.numero_de_lineas; i++)
 		if (grafo.lineas[i].etiqueta.textura != NULL)
 			SDL_DestroyTexture (grafo.lineas[i].etiqueta.textura);
 	for (i = 0; i < grafo.numero_de_vertices; i++)
 		if (grafo.vertices[i].etiqueta.textura != NULL)
 			SDL_DestroyTexture (grafo.vertices[i].etiqueta.textura);
+	TTF_CloseFont (fuente);
+	SDL_DestroyRenderer (renderer);
+	SDL_DestroyWindow (window);
 	TTF_Quit ();
 	SDL_Quit ();
+}
+
+void Salida_panico () {
+	abortar = 1;
+	puts ("Abortando SDL.");
+	Terminar_ventana ();
 }
 
 void Inicializar_ventana () {
@@ -64,21 +68,6 @@ void Inicializar_ventana () {
 		printf ("Mensaje de SDL:\n%s\n", SDL_GetError ());
 		Salida_panico ();
 	}
-}
-
-void Terminar_ventana () {
-	unsigned int i;
-	for (i = 0; i < grafo.numero_de_lineas; i++)
-		if (grafo.lineas[i].etiqueta.textura != NULL)
-			SDL_DestroyTexture (grafo.lineas[i].etiqueta.textura);
-	for (i = 0; i < grafo.numero_de_vertices; i++)
-		if (grafo.vertices[i].etiqueta.textura != NULL)
-			SDL_DestroyTexture (grafo.vertices[i].etiqueta.textura);
-	TTF_CloseFont (fuente);
-	SDL_DestroyRenderer (renderer);
-	SDL_DestroyWindow (window);
-	TTF_Quit ();
-	SDL_Quit ();
 }
 
 float Obtener_distancia (float x1, float y1, float x2, float y2) {
@@ -159,26 +148,22 @@ void Crear_etiquetas () {
 	}
 }
 
-void Dibujar_vertice (Vertice vertice) {
-	SDL_FRect cuadro_de_texto;
-
+void Dibujar_vertice (Vertice *vertice) {
 	Establecer_color (50, 200, 200, 255);
-	Dibujar_circulo (vertice.x, vertice.y, RADIO_VERTICES);
+	Dibujar_circulo ((*vertice).x, (*vertice).y, RADIO_VERTICES);
 	Establecer_color (100, 255, 255, 255);
-	Dibujar_circulo (vertice.x, vertice.y, RADIO_VERTICES - 10.0f);
+	Dibujar_circulo ((*vertice).x, (*vertice).y, RADIO_VERTICES - 10.0f);
 
-	cuadro_de_texto.x = vertice.x - vertice.etiqueta.w / 2.0f;
-	cuadro_de_texto.y = vertice.y - vertice.etiqueta.h / 2.0f;
-	cuadro_de_texto.w = vertice.etiqueta.w;
-	cuadro_de_texto.h = vertice.etiqueta.h;
-	SDL_RenderTexture (renderer, vertice.etiqueta.textura, NULL, &cuadro_de_texto);
+	// Posicionando su etiqueta
+	(*vertice).etiqueta.x = (*vertice).x - (*vertice).etiqueta.w / 2.0f;
+	(*vertice).etiqueta.y = (*vertice).y - (*vertice).etiqueta.h / 2.0f;
 }
 
 void Dibujar_vertices () {
 	unsigned int i;
 
 	for (i = 0; i < grafo.numero_de_vertices && abortar == 0; i++)
-		Dibujar_vertice (grafo.vertices[i]);
+		Dibujar_vertice (&grafo.vertices[i]);
 }
 
 void Dibujar_linea (float x1, float y1, float x2, float y2, float grosor) {
@@ -212,11 +197,6 @@ void Dibujar_triangulo (float x, float y, float h, float b, double radianes, flo
 	Dibujar_linea (x, y, x2, y2, grosor);
 }
 
-float Altura_eliptica (float x, float distancia, float semieje) {
-	distancia /= 2.0f;
-	return semieje * (float) sqrt (2.0 * (double) (distancia * x) - pow ((double) x, 2.0)) / distancia;
-}
-
 double Obtener_angulo (float x, float y) {
 	if (y == 0.0f) {
 		if (x >= 0.0f)
@@ -235,28 +215,27 @@ double Obtener_angulo (float x, float y) {
 			return PI + atan ((double) y / (double) x);
 }
 
-void Dibujar_relacion (Linea linea, float grosor, float semieje) {
+void Dibujar_relacion (Linea *linea, float grosor, float semieje) {
 	float radio = Obtener_distancia (
-		(*linea.origen).x,
-		(*linea.origen).y,
-		(*linea.destino).x,
-		(*linea.destino).y
+		(*(*linea).origen).x,
+		(*(*linea).origen).y,
+		(*(*linea).destino).x,
+		(*(*linea).destino).y
 	) / 2.0f;
-	float xc, yc, x1, y1, x2, y2; // Variables para dibujar lineas.
-	xc = ((*linea.destino).x - (*linea.origen).x) / 2.0f;
-	yc = ((*linea.destino).y - (*linea.origen).y) / 2.0f;
+	float xc, yc, x1, y1, x2, y2; // Variables para dibujar (*linea)s.
+	xc = ((*(*linea).destino).x - (*(*linea).origen).x) / 2.0f;
+	yc = ((*(*linea).destino).y - (*(*linea).origen).y) / 2.0f;
 	double radianes = Obtener_angulo (xc, yc);
 	double radianes_elipse;
 	double x_elipse, y_elipse;
 	int i;
-	SDL_FRect cuadro_de_texto;
 
 	if (semieje == 0.0f)
 		Dibujar_linea (
-			(*linea.origen).x,
-			(*linea.origen).y,
-			(*linea.destino).x,
-			(*linea.destino).y,
+			(*(*linea).origen).x,
+			(*(*linea).origen).y,
+			(*(*linea).destino).x,
+			(*(*linea).destino).y,
 			grosor
 		);
 	else 
@@ -264,32 +243,30 @@ void Dibujar_relacion (Linea linea, float grosor, float semieje) {
 			radianes_elipse = PI * (float) i / 32.0f;
 			x_elipse = radio * (1 - cos (radianes_elipse));
 			y_elipse = semieje * sin (radianes_elipse);
-			x1 = (*linea.origen).x + x_elipse * cos (radianes) + y_elipse * cos (radianes + PI / 2.0);
-			y1 = (*linea.origen).y + x_elipse * sin (radianes) + y_elipse * sin (radianes + PI / 2.0);
+			x1 = (*(*linea).origen).x + x_elipse * cos (radianes) + y_elipse * cos (radianes + PI / 2.0);
+			y1 = (*(*linea).origen).y + x_elipse * sin (radianes) + y_elipse * sin (radianes + PI / 2.0);
 			radianes_elipse = PI * (float) (i + 1) / 32.0f;
 			x_elipse = radio * (1 - cos (radianes_elipse));
 			y_elipse = semieje * sin (radianes_elipse);
-			x2 = (*linea.origen).x + x_elipse * cos (radianes) + y_elipse * cos (radianes + PI / 2.0);
-			y2 = (*linea.origen).y + x_elipse * sin (radianes) + y_elipse * sin (radianes + PI / 2.0);
+			x2 = (*(*linea).origen).x + x_elipse * cos (radianes) + y_elipse * cos (radianes + PI / 2.0);
+			y2 = (*(*linea).origen).y + x_elipse * sin (radianes) + y_elipse * sin (radianes + PI / 2.0);
 			Dibujar_linea (x1, y1, x2, y2, grosor);
 		}
 
 	radianes = Obtener_angulo (
-		(*linea.destino).x - (*linea.origen).x,
-		(*linea.destino).y - (*linea.origen).y
+		(*(*linea).destino).x - (*(*linea).origen).x,
+		(*(*linea).destino).y - (*(*linea).origen).y
 	) + PI / 2.0;
-	xc += (*linea.origen).x + semieje * (float) cos (radianes);
-	yc += (*linea.origen).y + semieje * (float) sin (radianes);
+	xc += (*(*linea).origen).x + semieje * (float) cos (radianes);
+	yc += (*(*linea).origen).y + semieje * (float) sin (radianes);
 
 	if (grafo.clasificacion & DIGRAFO) {
 		Dibujar_triangulo (xc, yc, 20.0f, 45.0f, radianes + PI / 2.0, grosor);
 	}
 
-	cuadro_de_texto.x = xc + 30.0f - linea.etiqueta.w / 2.0f;
-	cuadro_de_texto.y = yc + 30.0f - linea.etiqueta.h / 2.0f;
-	cuadro_de_texto.w = linea.etiqueta.w;
-	cuadro_de_texto.h = linea.etiqueta.h;
-	SDL_RenderTexture (renderer, linea.etiqueta.textura, NULL, &cuadro_de_texto);
+	// Posicionando su etiqueta.
+	(*linea).etiqueta.x = xc + 30.0f - (*linea).etiqueta.w / 2.0f;
+	(*linea).etiqueta.y = yc + 30.0f - (*linea).etiqueta.h / 2.0f;
 }
 
 void Dibujar_circunferencia (float x, float y, float grosor, float radio) {
@@ -305,37 +282,34 @@ void Dibujar_circunferencia (float x, float y, float grosor, float radio) {
 	}
 }
 
-void Dibujar_bucle (Linea linea, float grosor, float radio) {
-	SDL_FRect cuadro_de_texto;
+void Dibujar_bucle (Linea *linea, float grosor, float radio) {
 	double radianes = Obtener_angulo (
-		(*linea.origen).x - posx - WINDOW_WIDTH / 2.0f,
-		(*linea.origen).y - posy - WINDOW_HEIGHT / 2.0f
+		(*(*linea).origen).x - posx - WINDOW_WIDTH / 2.0f,
+		(*(*linea).origen).y - posy - WINDOW_HEIGHT / 2.0f
 	);
 	float coseno = (float) cos (radianes);
 	float seno = (float) sin (radianes);
 	float x = radio * coseno;
 	float y = radio * seno;
 	Dibujar_circunferencia (
-		(*linea.origen).x + x,
-		(*linea.origen).y + y,
+		(*(*linea).origen).x + x,
+		(*(*linea).origen).y + y,
 		grosor,
 		radio
 	);
 	if (grafo.clasificacion & DIGRAFO)
 		Dibujar_triangulo (
-			(*linea.origen).x + 2.0f * x,
-			(*linea.origen).y + 2.0f * y,
+			(*(*linea).origen).x + 2.0f * x,
+			(*(*linea).origen).y + 2.0f * y,
 			20.0f,
 			45.0f,
 			PI / 2.0 + radianes,
 			grosor
 		);
 	
-	cuadro_de_texto.x = (*linea.origen).x + 2.0f * x - linea.etiqueta.w / 2.0f + 30.0f * coseno;
-	cuadro_de_texto.y = (*linea.origen).y + 2.0f * y - linea.etiqueta.h / 2.0f + 30.0f * seno;
-	cuadro_de_texto.w = linea.etiqueta.w;
-	cuadro_de_texto.h = linea.etiqueta.h;
-	SDL_RenderTexture (renderer, linea.etiqueta.textura, NULL, &cuadro_de_texto);
+	// Posicionando su etiqueta.
+	(*linea).etiqueta.x = (*(*linea).origen).x + 2.0f * x - (*linea).etiqueta.w / 2.0f + 30.0f * coseno;
+	(*linea).etiqueta.y = (*(*linea).origen).y + 2.0f * y - (*linea).etiqueta.h / 2.0f + 30.0f * seno;
 }
 
 void Dibujar_relaciones () {
@@ -381,13 +355,36 @@ void Dibujar_relaciones () {
 				sentido = 0.0f;
 			if (sentido != 0.0f) {
 				if (grafo.lineas[j].origen == grafo.lineas[j].destino)
-					Dibujar_bucle (grafo.lineas[j], GROSOR_LINEAS, ANCHO_SEMIEJE * (n++) / 2.0f);
+					Dibujar_bucle (&grafo.lineas[j], GROSOR_LINEAS, ANCHO_SEMIEJE * (n++) / 2.0f);
 				else
-					Dibujar_relacion (grafo.lineas[j], GROSOR_LINEAS, sentido * (ancho - ANCHO_SEMIEJE * (n++)));
+					Dibujar_relacion (&grafo.lineas[j], GROSOR_LINEAS, sentido * (ancho - ANCHO_SEMIEJE * (n++)));
 				grafo.lineas[j].dibujado = 1;
 			}
 		}
 		grafo.lineas[i].dibujado = 1;
+	}
+}
+
+void Dibujar_etiquetas () {
+	unsigned int i;
+	SDL_FRect rect;
+
+	// Etiquetas de las líneas.
+	for (i = 0; i < grafo.numero_de_lineas; i++) {
+		rect.x = grafo.lineas[i].etiqueta.x;
+		rect.y = grafo.lineas[i].etiqueta.y;
+		rect.w = grafo.lineas[i].etiqueta.w;
+		rect.h = grafo.lineas[i].etiqueta.h;
+		SDL_RenderTexture (renderer, grafo.lineas[i].etiqueta.textura, NULL, &rect);
+	}
+
+	// Etiquetas de los vértices.
+	for (i = 0; i < grafo.numero_de_vertices; i++) {
+		rect.x = grafo.vertices[i].etiqueta.x;
+		rect.y = grafo.vertices[i].etiqueta.y;
+		rect.w = grafo.vertices[i].etiqueta.w;
+		rect.h = grafo.vertices[i].etiqueta.h;
+		SDL_RenderTexture (renderer, grafo.vertices[i].etiqueta.textura, NULL, &rect);
 	}
 }
 
@@ -610,6 +607,7 @@ void Dibujar_grafo () {
 		}
 		Dibujar_relaciones ();
 		Dibujar_vertices ();
+		Dibujar_etiquetas ();
 
 		if(!SDL_RenderPresent (renderer)) {
 			puts ("SDL ERROR: No se pudo actualizar el renderizador.");
